@@ -29,10 +29,15 @@ public class WelcomeScreen : MonoBehaviour
     static readonly Color BtnBg = new Color(1f, 1f, 1f, 0.06f);
     static readonly Color BtnHover = new Color(1f, 0.42f, 0.08f, 0.28f);
 
+    float openedAt;
+
     public void Begin(MapExperience exp, RoutePicker source)
     {
         experience = exp;
         picker = source;
+        closing = false;
+        pressed = true;                  // trigger kojim je ekran otvoren ne sme da klikne
+        openedAt = Time.unscaledTime;
         StartCoroutine(Build());
     }
 
@@ -198,7 +203,8 @@ public class WelcomeScreen : MonoBehaviour
             hoverIndex = hit;
         }
         bool now = trigger.ReadValue<float>() > 0.7f;
-        if (now && !pressed && hit >= 0) buttons[hit].action?.Invoke();
+        bool ready = Time.unscaledTime - openedAt > 0.45f;   // pauza dok traje ulazna animacija
+        if (now && !pressed && ready && hit >= 0) buttons[hit].action?.Invoke();
         pressed = now;
     }
 
