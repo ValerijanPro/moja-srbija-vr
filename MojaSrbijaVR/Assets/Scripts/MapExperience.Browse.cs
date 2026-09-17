@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public partial class MapExperience
 {
     WorldRoutePanel menu;
+    WorldRoutePanel legend;
     GameObject markerRoot;
     readonly List<TextMesh> markers = new List<TextMesh>();
     readonly List<List<int>> regions = new List<List<int>>();

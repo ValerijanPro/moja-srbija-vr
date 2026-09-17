@@ -7,7 +7,7 @@ public class SfxManager : MonoBehaviour
 {
     public static SfxManager I;
     AudioSource src;
-    AudioClip clickClip, grabClip, releaseClip;
+    AudioClip clickClip, grabClip, releaseClip, hoverClip, bellClip, stepsClip;
     AudioSource music;
     bool riding;
     // Background music should sit behind the interaction sounds and narration.
@@ -28,6 +28,9 @@ public class SfxManager : MonoBehaviour
         clickClip = Tone("click", 1250f, 0.06f, 0.5f);
         grabClip = Tone("grab", 240f, 0.09f, 0.6f);
         releaseClip = Tone("release", 170f, 0.08f, 0.45f);
+        hoverClip = Tone("hover", 1900f, 0.028f, 0.16f);
+        bellClip = Bell();
+        stepsClip = Steps();
 
         // muzika: ako postoji fajl u StreamingAssets/music koristi njega,
         // inace generisani pad
@@ -49,7 +52,64 @@ public class SfxManager : MonoBehaviour
     }
 
     public void Click() => Play(clickClip);
+    public void Hover() { if (hoverClip != null) src.PlayOneShot(hoverClip, 0.5f); }
+
+    // zvuk selekcije zavisi od sporta: zvonce za bicikl, koraci za trcanje
+    public void PlaySelect(string sport)
+    {
+        if (sport == "Ride" && bellClip != null) Play(bellClip);
+        else if (sport == "Run" && stepsClip != null) Play(stepsClip);
+        else Play(clickClip);
+    }
+
     void Play(AudioClip c) { if (c != null) src.PlayOneShot(c); }
+
+    static AudioClip Bell()
+    {
+        // dva metalna "cin-cin" udara biciklistickog zvonceta
+        int sr = 44100; float dur = 0.85f; int n = (int)(sr * dur);
+        var data = new float[n];
+        void Ding(float start, float amp)
+        {
+            int s0 = (int)(start * sr);
+            for (int i = s0; i < n; i++)
+            {
+                float t = (i - s0) / (float)sr;
+                float env = Mathf.Exp(-t * 9f);
+                data[i] += (Mathf.Sin(2 * Mathf.PI * 2093f * t)
+                          + 0.6f * Mathf.Sin(2 * Mathf.PI * 3136f * t)
+                          + 0.3f * Mathf.Sin(2 * Mathf.PI * 4699f * t)) * env * amp;
+            }
+        }
+        Ding(0f, 0.22f);
+        Ding(0.17f, 0.20f);
+        var clip = AudioClip.Create("bell", n, 1, sr, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+
+    static AudioClip Steps()
+    {
+        // sest brzih koraka trcanja (filtrirani sum, naizmenicno levi/desni)
+        int sr = 44100; float dur = 1.0f; int n = (int)(sr * dur);
+        var data = new float[n];
+        var rnd = new System.Random(3);
+        for (int step = 0; step < 6; step++)
+        {
+            int s0 = (int)(step * 0.155f * sr);
+            float lp = 0, cutoff = step % 2 == 0 ? 0.10f : 0.14f;
+            for (int i = 0; i < (int)(0.07f * sr) && s0 + i < n; i++)
+            {
+                float t = i / (float)sr;
+                float w = (float)(rnd.NextDouble() * 2 - 1);
+                lp = Mathf.Lerp(lp, w, cutoff);
+                data[s0 + i] += lp * Mathf.Exp(-t * 55f) * 0.9f;
+            }
+        }
+        var clip = AudioClip.Create("steps", n, 1, sr, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
 
     System.Collections.IEnumerator TryCustomMusic(AudioSource amb)
     {

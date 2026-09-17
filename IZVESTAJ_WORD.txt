@@ -69,7 +69,8 @@ raspakuju iz APK-a u trajno skladište.
     snimcima; pomeranje hvatanjem (grip), zumiranje sa dve ruke ili palicom
     (zum ka mestu na koje korisnik pokazuje), repozicioniranje pogleda.
 3)  Prikaz svih aktivnosti — GPS putanje iscrtane preko terena, obojene po
-    tipu sporta, konstantne debljine nezavisno od zuma.
+    tipu sporta (uz legendu boja u prostoru), konstantne debljine nezavisno
+    od zuma; prelazak pokazivačem preko rute daje zvučnu povratnu informaciju.
 4)  Selekcija ruta — laserski pokazivač na daljinu i projekcija vrha kontrolera
     pri bliskom radu (dodir); magnetno lepljenje kursora za najbližu putanju;
     rade oba kontrolera.
@@ -98,11 +99,13 @@ raspakuju iz APK-a u trajno skladište.
     destinacije) obeleženi direktno na mapi kao svetli markeri sa nazivom
     rute i fotografijom; klik na marker bira rutu.
 13) Mini-avatar — animirana figura koja se kreće po izabranoj ruti od starta
-    ka cilju, okrenuta u smeru kretanja.
+    ka cilju, okrenuta u smeru kretanja: biciklista na vožnjama, trkač na
+    trčanjima (odvojeni sprite setovi).
 14) Doba dana — kontinualna promena položaja i boje sunca (zora-podne-noć)
     desnom palicom.
-15) Zvuk — proceduralno generisani zvukovi interakcija (selekcija, hvatanje),
-    muzička podloga (podržana zamena sopstvenom muzikom).
+15) Zvuk — proceduralno generisani zvukovi interakcija: hover preko rute,
+    zvonce bicikla pri izboru vožnje, koraci trčanja pri izboru trčanja,
+    hvatanje mape; muzička podloga (podržana zamena sopstvenom muzikom).
 16) Poster režim — snimanje 4K rendera makete iz filmskog ugla jednim tasterom.
 17) Veb prototip — 3D pregledač istih podataka u browseru (MapLibre GL,
     teren + heatmap stil ruta + filteri po sportu i godini).

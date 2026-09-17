@@ -50,6 +50,12 @@ public partial class MapExperience : MonoBehaviour
         buttonY = Action("<XRController>{LeftHand}/secondaryButton");
         buttonA = Action("<XRController>{RightHand}/primaryButton");
         buttonB = Action("<XRController>{RightHand}/secondaryButton");
+        legend = new WorldRoutePanel("Legenda", 264, 168);
+        legend.root.transform.SetParent(null, true);
+        legend.AddText("<color=#05EBFF>●</color>  Vožnja (bicikl)", 36, 23);
+        legend.AddText("<color=#FF1466>●</color>  Trčanje", 36, 23);
+        legend.AddText("<color=#A6FF0D>●</color>  Ostalo", 36, 23);
+
         menu = new WorldRoutePanel("PregledRuta", 540, 1040);
         // Keep the panel in the room. A head-locked panel runs away as the user
         // turns to read it and is uncomfortable in a headset.
@@ -194,6 +200,13 @@ public partial class MapExperience : MonoBehaviour
             head.transform.position + forward * 0.82f + right * 0.30f - Vector3.up * 0.08f,
             Quaternion.LookRotation(forward));
         menu.root.transform.localScale = Vector3.one * 0.00062f;
+        if (legend != null)
+        {
+            legend.root.transform.SetPositionAndRotation(
+                head.transform.position + forward * 0.85f - right * 0.36f - Vector3.up * 0.22f,
+                Quaternion.LookRotation(forward));
+            legend.root.transform.localScale = Vector3.one * 0.00052f;
+        }
     }
 
     public void ShowWholeSerbia()
@@ -321,6 +334,7 @@ public partial class MapExperience : MonoBehaviour
         if (picker.panel != null) picker.panel.SetActive(false);
         if (!IsRiding && !Transitioning && !WelcomeOpen) UpdateOverview();
         else { SetMarkersVisible(false); menu.root.SetActive(false); }
+        if (legend != null) legend.root.SetActive(!IsRiding && !Transitioning && !WelcomeOpen);
     }
 
     void OnDisable()
@@ -347,6 +361,7 @@ public partial class MapExperience : MonoBehaviour
         GalleryCleanup();
         foreach (var action in new[] { leftStick, leftGrip, rightGrip, buttonX, buttonY, buttonA, buttonB }) action?.Dispose();
         menu?.Dispose();
+        legend?.Dispose();
         if (markerRoot != null) Destroy(markerRoot);
         DisposeReplayUI();
     }

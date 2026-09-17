@@ -13,7 +13,9 @@ public class MiniRunner : MonoBehaviour
 
     Transform vis;
     Renderer visRend;
-    readonly List<Texture2D> frames = new List<Texture2D>();
+    readonly List<Texture2D> bikeFrames = new List<Texture2D>();   // frame_*.png i ostalo
+    readonly List<Texture2D> runFrames = new List<Texture2D>();    // run*.png
+    List<Texture2D> frames = new List<Texture2D>();
     float frameT; int frameIdx;
     LineRenderer path;
     float[] cum; float total; float d;
@@ -33,10 +35,12 @@ public class MiniRunner : MonoBehaviour
             {
                 var t = new Texture2D(2, 2);
                 t.LoadImage(System.IO.File.ReadAllBytes(f));
-                frames.Add(t);
+                if (System.IO.Path.GetFileName(f).StartsWith("run")) runFrames.Add(t);
+                else bikeFrames.Add(t);
             }
         }
-        Debug.Log($"[MojaSrbija] Avatar kadrovi: {frames.Count}");
+        frames = bikeFrames.Count > 0 ? bikeFrames : runFrames;
+        Debug.Log($"[MojaSrbija] Avatar kadrovi: bicikl {bikeFrames.Count}, trcanje {runFrames.Count}");
         if (frames.Count > 0)
         {
             var q = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -72,8 +76,20 @@ public class MiniRunner : MonoBehaviour
 
     TrailRenderer trail;
 
-    public void Follow(LineRenderer lr)
+    public void Follow(LineRenderer lr, string sport = null)
     {
+        // izbor seta kadrova po sportu (trkac za Run, biciklista za ostalo)
+        if (sport != null && visRend != null)
+        {
+            var wanted = sport == "Run" && runFrames.Count > 0 ? runFrames
+                       : bikeFrames.Count > 0 ? bikeFrames : runFrames;
+            if (wanted.Count > 0 && frames != wanted)
+            {
+                frames = wanted;
+                frameIdx = 0;
+                visRend.material.mainTexture = frames[0];
+            }
+        }
         path = lr;
         int n = lr.positionCount;
         cum = new float[n];

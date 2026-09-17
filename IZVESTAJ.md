@@ -77,7 +77,10 @@ Toolkit 3; IL2CPP/ARM64 build za Quest 2.
 - **Interfejs u prostoru:** ekran dobrodošlice sa ukupnom statistikom arhive,
   prostorni meni sa listom ruta i preporukama, panel izabrane rute sa statistikom
   (dužina, uspon, tempo, puls) i fotografijama.
-- **Ambijent:** proceduralno generisan zvuk interakcija, muzička podloga, zvuk prilikom interakcije sa aplikacijom.
+- **Ambijent:** proceduralno generisani zvuci interakcija - hover preko rute,
+  zvonce bicikla pri izboru vožnje, koraci trčanja pri izboru trčanja; muzička
+  podloga; legenda boja sportova u prostoru; mini-avatar (biciklista/trkač)
+  koji se kreće po izabranoj ruti.
 
 ### 2.3 Tehnički izazovi i rešenja
 

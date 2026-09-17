@@ -344,6 +344,8 @@ public partial class RoutePicker : MonoBehaviour
         ApplyHoverSel();
     }
 
+    LineRenderer lastHoverSound;
+
     void ApplyHoverSel()
     {
         if (hoverCands.Count > 0)
@@ -354,13 +356,15 @@ public partial class RoutePicker : MonoBehaviour
         }
         else hoverLR = null;
         keeper.hovered = hoverLR != selected ? hoverLR : null;
+        if (hoverLR != null && hoverLR != selected && hoverLR != lastHoverSound && SfxManager.I != null)
+            SfxManager.I.Hover();
+        lastHoverSound = hoverLR;
     }
 
     void Pick(Vector3 hitWorld)
     {
         if (hoverCands.Count == 0) { Deselect(); return; }
         var chosen = hoverCands[Mathf.Clamp(hoverSel, 0, hoverCands.Count - 1)];
-        if (SfxManager.I != null) SfxManager.I.Click();
         Select(chosen.idx);
     }
 
@@ -372,10 +376,13 @@ public partial class RoutePicker : MonoBehaviour
         var lr = routeLines[i];
         selected = lr;
         selectedMat = lr.sharedMaterial;
+        string sport = selectedMat == runRouteMaterial ? "Run"
+                     : selectedMat == rideRouteMaterial ? "Ride" : "Other";
         selectionMaterial = new Material(selectedMat) { color = new Color(1f, 0.92f, 0.05f, 1f) };
         lr.sharedMaterial = selectionMaterial;
         keeper.highlighted = lr;
-        if (MiniRunner.I != null) MiniRunner.I.Follow(lr);
+        if (SfxManager.I != null) SfxManager.I.PlaySelect(sport);
+        if (MiniRunner.I != null) MiniRunner.I.Follow(lr, sport);
 
         var m = Metadata(i);
         if (m.Length >= 6 && panel != null)
