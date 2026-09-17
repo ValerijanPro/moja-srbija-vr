@@ -6,8 +6,11 @@ Shader "MojaSrbija/RouteUnlit"
     }
     SubShader
     {
-        Tags { "Queue"="Geometry+50" "RenderType"="Opaque" }
-        Offset -8, -60      // gurni linije ispred terena: nema z-fight tackica na zumu
+        // Rute se crtaju POSLE terena i patch-a, preko svega - nema
+        // depth borbi ni "perli" ni na jednom zumu.
+        Tags { "Queue"="Transparent+60" "RenderType"="Opaque" "IgnoreProjector"="True" }
+        ZWrite Off
+        ZTest Always
         Cull Off
         Lighting Off
 

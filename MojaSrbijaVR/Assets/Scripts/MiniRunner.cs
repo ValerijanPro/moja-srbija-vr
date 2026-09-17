@@ -117,7 +117,19 @@ public class MiniRunner : MonoBehaviour
 
         var cam = Camera.main;
         if (cam != null)
+        {
             vis.rotation = Quaternion.LookRotation(vis.position - cam.transform.position);
+            // sprite gleda u smeru kretanja (flip po horizontali kad treba)
+            if (visRend != null)
+            {
+                var ahead = path.transform.TransformPoint(PointAt(Mathf.Min(d + total * 0.005f, total)));
+                var moveDir = ahead - wp;
+                float side = Vector3.Dot(moveDir, cam.transform.right);
+                bool flip = side < -0.0001f;
+                visRend.material.mainTextureScale = new Vector2(flip ? -1 : 1, 1);
+                visRend.material.mainTextureOffset = new Vector2(flip ? 1 : 0, 0);
+            }
+        }
 
         if (frames.Count > 1 && visRend != null)
         {

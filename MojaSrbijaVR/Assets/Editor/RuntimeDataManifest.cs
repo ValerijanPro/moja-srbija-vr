@@ -16,7 +16,7 @@ public class RuntimeDataManifest : IPreprocessBuildWithReport
         var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories)
             .Select(p => p.Substring(root.Length + 1).Replace('\\', '/'))
             .Where(p => !p.EndsWith(".meta") && p != "runtime_files.txt" &&
-                (p.EndsWith(".txt") || p.StartsWith("avatar/") || p.StartsWith("music/")))
+                (p.EndsWith(".txt") || p.StartsWith("avatar/") || p.StartsWith("music/") || p.StartsWith("videos/")))
             .OrderBy(p => p).ToArray();
         File.WriteAllLines(Path.Combine(root, "runtime_files.txt"), files);
         AssetDatabase.ImportAsset(root + "/runtime_files.txt");

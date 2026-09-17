@@ -88,7 +88,7 @@ public partial class MapExperience
         double total = originalDistances.Length > 0 ? originalDistances[originalDistances.Length - 1] : 0;
         if (total < 1)
         {
-            notice = "Ova ruta nema dovoljno tacaka za voznju.";
+            notice = "Ova ruta nema dovoljno tačaka za vožnju.";
             yield return Fade(1, 0); Transitioning = false; RebuildMenu(); yield break;
         }
         // Sample the actual mesh, removing both the exaggerated relief and the

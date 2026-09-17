@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public partial class MapExperience
 {
@@ -31,6 +33,27 @@ public partial class MapExperience
         details = false; recommendations = true; page = 0;
         listedGroups = new List<int>(picker.RecommendedGroups);
         RebuildMenu();
+    }
+
+    // preporuke kao pinovi na mapi: uokviri ih pogledom, meni sklonjen
+    public void FocusRecommended()
+    {
+        var reps = new List<int>();
+        foreach (int g in picker.RecommendedGroups) reps.Add(picker.Representative(g));
+        if (reps.Count > 0) FitRoutes(reps);
+        menuVisible = false;
+        RebuildMenu();
+    }
+
+    void Experience_ShowWelcome()
+    {
+        StopVideo();
+        gallery = false; details = false;
+        menuVisible = false;
+        WelcomeOpen = true;
+        var welcome = gameObject.GetComponent<WelcomeScreen>();
+        if (welcome == null) welcome = gameObject.AddComponent<WelcomeScreen>();
+        welcome.Begin(this, picker);
     }
 
     public void SelectionChanged()
@@ -95,7 +118,7 @@ public partial class MapExperience
             menu.AddButton("▶  Pusti video (sa zvukom)", () => PlayVideo(e[1]));
         if (items.Length > 1)
         {
-            menu.AddButton("Sledeca  ▸", () => { StopVideo(); galleryIdx++; RebuildMenu(); });
+            menu.AddButton("Sledeća  ▸", () => { StopVideo(); galleryIdx++; RebuildMenu(); });
             menu.AddButton("◂  Prethodna", () => { StopVideo(); galleryIdx--; RebuildMenu(); });
         }
         menu.AddButton("Nazad na rutu", () => { gallery = false; StopVideo(); RebuildMenu(); });
@@ -120,6 +143,9 @@ public partial class MapExperience
 
     void PlayVideo(string url)
     {
+        // lokalni video iz APK podataka (videos/xxx.mp4) ili veb URL
+        if (!url.StartsWith("http"))
+            url = "file:///" + System.IO.Path.Combine(RuntimeData.Root, url).Replace('\\', '/');
         if (videoPlayer == null)
         {
             var go = new GameObject("GalerijaVideo");
@@ -132,6 +158,12 @@ public partial class MapExperience
             videoPlayer.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
             videoPlayer.targetTexture = videoRT;
             videoPlayer.isLooping = true;
+            videoPlayer.errorReceived += (_, message) =>
+            {
+                Debug.LogWarning("[MojaSrbija] Video greska: " + message);
+                notice = "Video ne može da se pusti na ovom uređaju.";
+                RebuildMenu();
+            };
         }
         videoPlayer.url = url;
         videoPlayer.Play();
@@ -147,8 +179,8 @@ public partial class MapExperience
         if (menu == null) return;
         if (picker.SelectedIndex < 0) { details = false; gallery = false; }
         menu.Clear();
-        if (gallery && picker.SelectedIndex >= 0) { BuildGallery(); return; }
-        menu.AddText(details ? picker.Title(picker.SelectedIndex) : recommendations ? "Preporuceno za tebe" : "Moje rute", 75, 30, true);
+        if (gallery && picker.SelectedIndex >= 0) { BuildGallery(); menu.PlayEntrance(); return; }
+        menu.AddText(details ? picker.Title(picker.SelectedIndex) : recommendations ? "Preporučeno za tebe" : "Moje rute", 75, 30, true);
         if (!string.IsNullOrEmpty(notice)) menu.AddText(notice, 65, 22);
         if (details && picker.SelectedIndex >= 0)
         {
@@ -157,19 +189,19 @@ public partial class MapExperience
             int mediaCount = picker.MediaEntries(picker.SelectedIndex).Length;
             if (mediaCount > 0)
                 menu.AddButton($"Galerija  ({mediaCount} slika/videa)", OpenGallery);
-            menu.AddButton("Pokreni voznju  (X)", StartSelectedRide);
-            menu.AddButton("Uvecaj izabranu rutu", () => FitRoutes(new[] { picker.SelectedIndex }));
+            menu.AddButton("Pokreni vožnju  (X)", StartSelectedRide);
+            menu.AddButton("Uvećaj izabranu rutu", () => FitRoutes(new[] { picker.SelectedIndex }));
             if (picker.GroupSize(picker.SelectedIndex) > 1)
             {
                 menu.AddButton("Prethodna aktivnost  (B)", () => picker.BrowseActivity(-1));
-                menu.AddButton("Sledeca aktivnost  (A)", () => picker.BrowseActivity(1));
+                menu.AddButton("Sledeća aktivnost  (A)", () => picker.BrowseActivity(1));
             }
             menu.AddButton("Nazad na spisak ruta", () => { details = false; RebuildMenu(); });
         }
         else
         {
             menu.AddText(recommendations
-                ? "Predlozi su iz tvoje arhive: ucestalost, duzina i prepoznate destinacije. Podaci ne napustaju uredjaj."
+                ? "Predlozi su iz tvoje arhive: učestalost, dužina i prepoznate destinacije. Podaci ne napuštaju uređaj."
                 : "Izaberi rutu sa spiska ili uperi laser direktno u liniju.", 70, 22);
             if (listedGroups == null) listedGroups = new List<int>();
             int start = page * 6;
@@ -183,14 +215,15 @@ public partial class MapExperience
             if (listedGroups.Count > 6)
             {
                 int pages = (listedGroups.Count + 5) / 6;
-                menu.AddButton($"Sledeca strana  ({page + 1}/{pages})", () => { page = (page + 1) % pages; RebuildMenu(); });
+                menu.AddButton($"Sledeća strana  ({page + 1}/{pages})", () => { page = (page + 1) % pages; RebuildMenu(); });
                 menu.AddButton("Prethodna strana", () => { page = (page + pages - 1) % pages; RebuildMenu(); });
             }
-            if (!recommendations) menu.AddButton("Preporucene rute", OpenRecommendations);
-            else menu.AddButton("Nazad na moje rute", OpenOverview);
+            if (recommendations) menu.AddButton("Nazad na moje rute", OpenOverview);
             menu.AddButton("Glavna oblast ruta  (Y)", () => { FitDominantArea(); OpenOverview(); });
+            menu.AddButton("Početni ekran", () => Experience_ShowWelcome());
         }
         menu.AddText("Oba triggera: izbor\nGrip: pomeri mapu | dve ruke: zum\nLeva palica: zum", 90, 20);
+        menu.PlayEntrance();
     }
 
     void UpdateOverview()
@@ -234,26 +267,84 @@ public partial class MapExperience
         }
         while (markers.Count < regions.Count)
         {
-            var go = new GameObject("Region", typeof(TextMesh));
-            go.transform.SetParent(markerRoot.transform, false);
-            var text = go.GetComponent<TextMesh>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
-            text.fontSize = 84; text.characterSize = 0.009f;
-            text.anchor = TextAnchor.MiddleCenter; text.alignment = TextAlignment.Center;
-            text.fontStyle = FontStyle.Bold;
-            text.color = new Color(0.05f, 0.55f, 1f, 1f);
-            markers.Add(text);
+            var container = new GameObject("Region");
+            container.transform.SetParent(markerRoot.transform, false);
+            markers.Add(MakeMarkerText(container.transform, 84, new Color(1f, 0.5f, 0.08f), Vector3.zero, FontStyle.Bold));
+            regionLabels.Add(MakeMarkerText(container.transform, 32, new Color(1f, 0.88f, 0.72f), new Vector3(0, -0.052f, 0), FontStyle.Normal));
+            var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(quad.GetComponent<Collider>());
+            quad.transform.SetParent(container.transform, false);
+            quad.transform.localPosition = new Vector3(0, 0.09f, 0);
+            quad.transform.localScale = new Vector3(0.115f, 0.075f, 1);
+            quad.GetComponent<MeshRenderer>().material = new Material(Shader.Find("Sprites/Default"));
+            quad.SetActive(false);
+            regionPhotos.Add(quad);
         }
         for (int i = 0; i < markers.Count; i++)
         {
             bool active = i < regions.Count;
-            markers[i].gameObject.SetActive(active);
+            markers[i].transform.parent.gameObject.SetActive(active);
             if (!active) continue;
             markers[i].text = "\u25cf";
-            markers[i].transform.SetPositionAndRotation(regionLocations[i], Quaternion.LookRotation(mapForward));
+            var groups = regions[i];
+            string title = groups.Count == 1 ? picker.Title(picker.Representative(groups[0])) : groups.Count + " predložene rute";
+            if (title.Length > 26) title = title.Substring(0, 24) + "...";
+            regionLabels[i].text = title;
+            markers[i].transform.parent.SetPositionAndRotation(regionLocations[i], Quaternion.LookRotation(mapForward));
+            regionPhotos[i].SetActive(false);
+            if (groups.Count == 1)
+            {
+                var entries = picker.MediaEntries(picker.Representative(groups[0]));
+                if (entries.Length > 0) StartCoroutine(LoadMarkerPhoto(PosterUrl(entries[0]), regionPhotos[i]));
+            }
         }
         SetMarkersVisible(true);
+    }
+
+    readonly List<TextMesh> regionLabels = new List<TextMesh>();
+    readonly List<GameObject> regionPhotos = new List<GameObject>();
+
+    static TextMesh MakeMarkerText(Transform parent, int size, Color color, Vector3 offset, FontStyle style)
+    {
+        var go = new GameObject("Tekst", typeof(TextMesh));
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = offset;
+        var text = go.GetComponent<TextMesh>();
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
+        text.fontSize = size; text.characterSize = 0.009f;
+        text.anchor = TextAnchor.MiddleCenter; text.alignment = TextAlignment.Center;
+        text.fontStyle = style;
+        text.color = color;
+        return text;
+    }
+
+    static string PosterUrl(string entry)
+    {
+        var c = entry.Split('|');
+        if (c.Length >= 3 && c[0] == "V") return c[2];
+        return c.Length >= 2 ? c[1] : "";
+    }
+
+    IEnumerator LoadMarkerPhoto(string url, GameObject quad)
+    {
+        if (string.IsNullOrEmpty(url) || !url.StartsWith("http")) yield break;
+        if (!galleryCache.TryGetValue(url, out var tex) || tex == null)
+        {
+            using (var req = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(url))
+            {
+                yield return req.SendWebRequest();
+                if (req.result != UnityEngine.Networking.UnityWebRequest.Result.Success) yield break;
+                tex = UnityEngine.Networking.DownloadHandlerTexture.GetContent(req);
+                galleryCache[url] = tex;
+            }
+        }
+        if (quad == null) yield break;
+        var mat = quad.GetComponent<MeshRenderer>().material;
+        mat.mainTexture = tex;
+        float aspect = (float)tex.width / tex.height;
+        quad.transform.localScale = new Vector3(0.075f * aspect, 0.075f, 1);
+        quad.SetActive(true);
     }
 
     void SetMarkersVisible(bool visible) { if (markerRoot != null) markerRoot.SetActive(visible); }

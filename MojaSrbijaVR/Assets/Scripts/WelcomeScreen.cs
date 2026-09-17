@@ -75,18 +75,18 @@ public class WelcomeScreen : MonoBehaviour
         divider.rectTransform.sizeDelta = new Vector2(-72, 2);
 
         float y = 272;
-        AddButton("Istrazi mapu", "slobodno razgledanje, laser bira rute", ref y,
+        AddButton("Istraži mapu", "slobodno razgledanje, laser bira rute", ref y,
             () => Close(() => experience.SetMenuVisible(false)));
         AddButton("Moje rute", "spisak svih grupa ruta", ref y,
             () => Close(() => experience.OpenOverview()));
-        AddButton("Preporuceno za tebe", "predlozi iz tvoje arhive", ref y,
-            () => Close(() => experience.OpenRecommendations()));
+        AddButton("Preporučeno za tebe", "predlozi obeleženi na mapi", ref y,
+            () => Close(() => experience.FocusRecommended()));
         AddButton("O projektu", "", ref y, ToggleAbout);
 
         aboutText = MakeText(
-            "VR sistem za istrazivanje licnih Strava aktivnosti na 3D terenu Srbije.\n" +
+            "VR sistem za istraživanje ličnih Strava aktivnosti na 3D terenu Srbije.\n" +
             "Projekat: Virtuelna stvarnost, doktorske studije.\n" +
-            "Podaci ne napustaju uredjaj.",
+            "Podaci ne napuštaju uređaj.",
             21, FontStyle.Normal, TxtDim, y + 6, 120);
         aboutText.gameObject.SetActive(false);
 

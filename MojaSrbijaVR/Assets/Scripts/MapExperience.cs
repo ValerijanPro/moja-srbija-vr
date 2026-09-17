@@ -58,7 +58,7 @@ public partial class MapExperience : MonoBehaviour
         InitializeReplayUI();
         initialized = true;
         Recenter();
-        FitDominantArea();
+        ShowWholeSerbia();   // pocetni pogled: cela drzava, korisnik sam zumira
         OpenOverview();
         menuVisible = false;
 
@@ -194,6 +194,13 @@ public partial class MapExperience : MonoBehaviour
             head.transform.position + forward * 0.82f + right * 0.30f - Vector3.up * 0.08f,
             Quaternion.LookRotation(forward));
         menu.root.transform.localScale = Vector3.one * 0.00062f;
+    }
+
+    public void ShowWholeSerbia()
+    {
+        focus = Vector3.zero;      // centar makete
+        zoom = 0.85f;
+        ApplyMapPose();
     }
 
     void FitDominantArea()
