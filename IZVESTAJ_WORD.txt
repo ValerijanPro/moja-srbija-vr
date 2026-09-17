@@ -130,14 +130,14 @@ raspakuju iz APK-a u trajno skladište.
 - Funkcionalna standalone VR aplikacija na Meta Quest 2 uređaju, sa kompletnim
   tokom: dobrodošlica -> pregled mape -> selekcija -> detalji i galerija ->
   replay vožnje -> preporuke.
-- Vizuelizovano 109 aktivnosti (oko 2.400 km) iz lične četvorogodišnje arhive
-  (2022–2026), automatski grupisano u [UPISATI] grupa putanja; 34 fotografije
+- Vizuelizovano 109 aktivnosti (oko 2.400 km i 13.000 m uspona) iz lične
+  četvorogodišnje arhive (2022–2026), automatski grupisano u 95 grupa putanja; 34 fotografije
   i 18 video zapisa dostupno u galeriji (video radi offline).
 - Maketa Srbije: teren isečen po državnoj granici, satelitska tekstura visoke
   rezolucije sa dodatnim regionom u većoj rezoluciji, potpuno offline.
 - Pipeline je reproducibilan za bilo kog Strava korisnika — unosom sopstvenih
   API kredencijala sistem preuzima i vizuelizuje drugu arhivu bez izmena koda.
-- Performanse: stabilnih [UPISATI] fps na Quest 2 uređaju.
+- Performanse: stabilnih 120 fps na Quest 2 uređaju.
 
 Ograničenja i budući rad:
 
