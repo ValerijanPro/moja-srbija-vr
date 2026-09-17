@@ -1,0 +1,31 @@
+# nije deo projekta
+gods-eye-view/
+strava-vr.tar.gz
+
+# tajne i tokeni
+strava-vr/.env
+strava-vr/token.json
+*.keystore
+
+# Unity generisano
+MojaSrbijaVR/[Ll]ibrary/
+MojaSrbijaVR/[Tt]emp/
+MojaSrbijaVR/[Oo]bj/
+MojaSrbijaVR/[Bb]uild/
+MojaSrbijaVR/[Bb]uilds/
+MojaSrbijaVR/[Ll]ogs/
+MojaSrbijaVR/[Uu]serSettings/
+MojaSrbijaVR/.vs/
+MojaSrbijaVR/*.csproj
+MojaSrbijaVR/*.sln
+MojaSrbijaVR/.idea/
+
+# radni fajlovi
+*.log
+__pycache__/
+*.pyc
+viewer/data/photos.json.done
+
+# IL2CPP build cache
+MojaSrbijaVR/.utmp/
+MojaSrbijaVR/*.apk

@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strava Srbija 3D</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root{
+    --bg:#0b0f13; --panel:#12181fee; --line:#262f39; --txt:#e8edf2; --dim:#8b98a5;
+    --orange:#ff5e00; --amber:#ffb03a; --red:#ff4d1c;
+  }
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+    font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+  #map{position:absolute;inset:0;}
+  .panel{position:absolute;background:var(--panel);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px #0008;}
+  /* sidebar */
+  #side{top:12px;left:12px;bottom:12px;width:308px;display:flex;flex-direction:column;overflow:hidden;}
+  #side header{padding:14px 16px 10px;border-bottom:1px solid var(--line);}
+  #side h1{margin:0;font-size:16px;letter-spacing:.3px;}
+  #side h1 b{color:var(--orange);}
+  #totals{color:var(--dim);font-size:12px;margin-top:4px;}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+  .chip{padding:3px 10px;border-radius:999px;font-size:11.5px;cursor:pointer;
+    background:#ffffff0d;border:1px solid var(--line);color:var(--dim);user-select:none;}
+  .chip:hover{color:var(--txt);}
+  .chip.on{background:#ff5e0026;border-color:#ff5e0066;color:#ffb590;}
+  #list{flex:1;overflow-y:auto;padding:6px;scrollbar-width:thin;}
+  .item{padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;gap:10px;align-items:center;}
+  .item:hover{background:#ffffff10;}
+  .item.sel{background:#ff5e0022;outline:1px solid #ff5e0055;}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 6px currentColor;}
+  .item .mid{flex:1;min-width:0;}
+  .item .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item .sub{color:var(--dim);font-size:11px;margin-top:1px;}
+  .item .km{color:var(--dim);font-size:12px;flex:none;}
+  /* controls */
+  #ctrl{top:12px;right:12px;padding:12px 14px;width:212px;}
+  #ctrl label{display:block;font-size:12px;color:var(--dim);margin-bottom:4px;}
+  #ctrl input[type=range]{width:100%;accent-color:var(--orange);}
+  /* detail */
+  #detail{right:12px;top:112px;width:212px;padding:14px;display:none;}
+  #detail h2{margin:0 0 2px;font-size:14px;}
+  #detail .date{color:var(--dim);font-size:12px;margin-bottom:10px;}
+  #stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .st{background:#ffffff0a;border-radius:8px;padding:7px 9px;}
+  .st .v{font-size:15px;font-weight:600;}
+  .st .k{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;}
+  #d-photos{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+  #d-photos:empty{display:none;}
+  #d-photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block;}
+  button{margin-top:12px;width:100%;padding:9px;border:0;border-radius:8px;cursor:pointer;
+    background:var(--orange);color:#fff;font-weight:600;font-size:13px;}
+  button:hover{filter:brightness(1.12);}
+  /* hover tooltip */
+  #tip{position:absolute;pointer-events:none;display:none;z-index:5;
+    background:#0e1319f2;border:1px solid var(--line);border-radius:8px;
+    padding:6px 10px;font-size:12px;max-width:240px;box-shadow:0 4px 14px #000a;}
+  #tip .t{font-weight:600;}
+  #tip .s{color:var(--dim);font-size:11px;}
+  /* flythrough hud */
+  #hud{display:none;left:50%;transform:translateX(-50%);bottom:20px;padding:12px 18px;
+    width:440px;max-width:80vw;text-align:center;}
+  #hud .nm{font-weight:600;margin-bottom:6px;}
+  #bar{height:5px;background:#ffffff22;border-radius:3px;overflow:hidden;margin:8px 0;}
+  #barfill{height:100%;width:0;background:var(--orange);}
+  #hud .row{display:flex;gap:14px;justify-content:center;align-items:center;font-size:12px;color:var(--dim);}
+  #hud button{width:auto;margin-top:8px;padding:6px 22px;background:#37414c;}
+  #err{left:50%;top:50%;transform:translate(-50%,-50%);padding:22px 26px;display:none;max-width:440px;}
+  /* marker trenutne pozicije u preletu */
+  .fly-marker{width:18px;height:18px;border-radius:50%;background:#00c2ff;
+    border:3px solid #063243;box-shadow:0 0 12px #00c2ffcc,0 2px 6px #0009;position:relative;}
+  .fly-marker::after{content:'';position:absolute;inset:-13px;border-radius:50%;
+    border:3px solid #00c2ff;animation:flypulse 1.5s ease-out infinite;}
+  @keyframes flypulse{0%{transform:scale(.35);opacity:1}100%{transform:scale(1.15);opacity:0}}
+  @media (max-width:760px){#side{width:220px;} #ctrl,#detail{width:170px;}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="tip"><div class="t"></div><div class="s"></div></div>
+
+<div id="side" class="panel">
+  <header>
+    <h1><b>Strava</b> Srbija 3D</h1>
+    <div id="totals">ucitavanje...</div>
+    <div class="chips" id="sportChips"></div>
+    <div class="chips" id="yearChips"></div>
+  </header>
+  <div id="list"></div>
+</div>
+
+<div id="ctrl" class="panel">
+  <label>Reljef (preuvelicanje): <span id="exv">1.7</span>x</label>
+  <input id="ex" type="range" min="0" max="3.5" step="0.1" value="1.7">
+</div>
+
+<div id="detail" class="panel">
+  <h2 id="d-name"></h2>
+  <div class="date" id="d-date"></div>
+  <div id="stats"></div>
+  <div id="d-photos"></div>
+  <button id="fly">&#9658; Preleti rutu</button>
+</div>
+
+<div id="hud" class="panel">
+  <div class="nm" id="h-name"></div>
+  <div id="bar"><div id="barfill"></div></div>
+  <div class="row">
+    <span id="h-km">0.0 km</span>
+    <span id="h-alt"></span>
+    <span>brzina <input id="spd" type="range" min="0.3" max="4" step="0.1" value="1" style="width:90px;vertical-align:middle;accent-color:var(--orange)"></span>
+  </div>
+  <button id="stop">Zaustavi (Esc)</button>
+</div>
+
+<div id="err" class="panel">
+  <b>Ne mogu da ucitam data/routes.geojson.</b><br><br>
+  Viewer mora da se sluzi preko HTTP-a, ne kao file://. Iz foldera <code>strava-vr/viewer</code> pokreni:<br><br>
+  <code>python3 -m http.server 8791</code><br><br>
+  pa otvori <code>http://localhost:8791</code>. Ako nema demo podataka, prvo pokreni <code>python3 make_demo_data.py</code>.
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SPORT_COLOR = s => s === 'Run' ? '#ff4d1c' : (s === 'Ride' ? '#ffb03a' : '#ff8a2a');
+
+const map = new maplibregl.Map({
+  container: 'map',
+  center: [20.78, 44.05],
+  zoom: 6.35, pitch: 52, bearing: 0,
+  maxPitch: 80,
+  minZoom: 5.7,
+  maxBounds: [[16.6, 40.4], [25.3, 47.6]],
+  attributionControl: {compact: true},
+  style: {
+    version: 8,
+    sources: {
+      sat: {
+        type: 'raster', tileSize: 256, maxzoom: 18,
+        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+        attribution: 'Esri World Imagery | teren: AWS/Mapzen | granica: OSM | rute: Strava'
+      },
+      dem: {
+        type: 'raster-dem', tileSize: 256, maxzoom: 13, encoding: 'terrarium',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png']
+      },
+      demHill: {
+        type: 'raster-dem', tileSize: 256, maxzoom: 13, encoding: 'terrarium',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png']
+      }
+    },
+    layers: [
+      {id: 'sat', type: 'raster', source: 'sat',
+       paint: {'raster-brightness-max': 0.72, 'raster-saturation': -0.45, 'raster-contrast': 0.06}},
+      {id: 'hill', type: 'hillshade', source: 'demHill',
+       paint: {'hillshade-exaggeration': 0.4, 'hillshade-shadow-color': '#000610'}}
+    ],
+    sky: {'sky-color': '#0b1420', 'horizon-color': '#1d3a52', 'fog-color': '#0b1016',
+          'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.6}
+  }
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch: true}), 'bottom-right');
+
+let routes = null, selId = null, flying = false, photos = {};
+let filt = {sport: 'all', year: 'all'};
+
+function filterExpr(){
+  const parts = [];
+  if (filt.sport === 'other') parts.push(['!', ['in', ['get', 'sport'], ['literal', ['Run', 'Ride']]]]);
+  else if (filt.sport !== 'all') parts.push(['==', ['get', 'sport'], filt.sport]);
+  if (filt.year !== 'all') parts.push(['==', ['get', 'year'], filt.year]);
+  return parts.length ? ['all', ...parts] : true;
+}
+function featMatches(p){
+  if (filt.sport === 'other' && (p.sport === 'Run' || p.sport === 'Ride')) return false;
+  if (filt.sport !== 'all' && filt.sport !== 'other' && p.sport !== filt.sport) return false;
+  if (filt.year !== 'all' && p.year !== filt.year) return false;
+  return true;
+}
+
+map.on('load', async () => {
+  map.setTerrain({source: 'dem', exaggeration: 1.7});
+
+  // samo Srbija: tamna maska van granice + svetleca granica
+  try {
+    const srb = await (await fetch('data/srbija.geojson', {cache: 'no-store'})).json();
+    map.addSource('srbija', {type: 'geojson', data: srb});
+    map.addLayer({id: 'mask', type: 'fill', source: 'srbija',
+      filter: ['==', ['get', 'kind'], 'mask'],
+      paint: {'fill-color': '#04070b', 'fill-opacity': 0.86}});
+    map.addLayer({id: 'border-glow', type: 'line', source: 'srbija',
+      filter: ['==', ['get', 'kind'], 'border'],
+      layout: {'line-cap': 'round', 'line-join': 'round'},
+      paint: {'line-color': '#ff5e00', 'line-width': 7, 'line-blur': 4, 'line-opacity': 0.5}});
+    map.addLayer({id: 'border-core', type: 'line', source: 'srbija',
+      filter: ['==', ['get', 'kind'], 'border'],
+      layout: {'line-cap': 'round', 'line-join': 'round'},
+      paint: {'line-color': '#ffe3d1', 'line-width': 1.4, 'line-opacity': 0.85}});
+  } catch (e) { /* bez maske ako fajl fali */ }
+
+  try {
+    routes = await (await fetch('data/routes.geojson', {cache: 'no-store'})).json();
+    if (!routes.features.length) throw new Error('empty');
+  } catch (e) { $('err').style.display = 'block'; return; }
+  for (const f of routes.features) f.properties.year = (f.properties.date || '').slice(0, 4);
+  try { photos = await (await fetch('data/photos.json', {cache: 'no-store'})).json(); } catch (e) {}
+  $('d-photos').onclick = e => { if (e.target.tagName === 'IMG') open(e.target.src, '_blank'); };
+
+  map.addSource('routes', {type: 'geojson', data: routes});
+  const sportColor = ['match', ['get', 'sport'], 'Run', '#ff4d1c', 'Ride', '#ffb03a', '#ff8a2a'];
+  const Z = (a, b, c) => ['interpolate', ['linear'], ['zoom'], 5.7, a, 10, b, 14, c];
+
+  // heatmap stil: tanke poluprovidne linije koje se vizuelno sabiraju
+  map.addLayer({id: 'heat-glow', type: 'line', source: 'routes',
+    layout: {'line-cap': 'round', 'line-join': 'round'},
+    paint: {'line-color': sportColor, 'line-width': Z(2.5, 5, 9),
+            'line-opacity': 0.07, 'line-blur': 3}});
+  map.addLayer({id: 'heat', type: 'line', source: 'routes',
+    layout: {'line-cap': 'round', 'line-join': 'round'},
+    paint: {'line-color': sportColor, 'line-width': Z(0.7, 1.5, 3),
+            'line-opacity': Z(0.3, 0.42, 0.75), 'line-blur': 0.3}});
+  map.addLayer({id: 'route-hover', type: 'line', source: 'routes',
+    filter: ['==', ['get', 'id'], -1],
+    layout: {'line-cap': 'round', 'line-join': 'round'},
+    paint: {'line-color': '#7fd8ff', 'line-width': 3, 'line-opacity': 0.95}});
+  map.addLayer({id: 'route-sel', type: 'line', source: 'routes',
+    filter: ['==', ['get', 'id'], -1],
+    layout: {'line-cap': 'round', 'line-join': 'round'},
+    paint: {'line-color': '#ffffff', 'line-width': 3.5, 'line-opacity': 0.95}});
+  map.addSource('fly-trail', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+  map.addLayer({id: 'fly-trail', type: 'line', source: 'fly-trail',
+    layout: {'line-cap': 'round', 'line-join': 'round'},
+    paint: {'line-color': '#ffffff', 'line-width': 3.5, 'line-opacity': 0.9}});
+
+  // hover: highlight + tooltip
+  let hoverId = null;
+  map.on('mousemove', e => {
+    if (flying) return;
+    const fs = map.queryRenderedFeatures(
+      [[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]], {layers: ['heat']});
+    const f = fs[0];
+    if (f){
+      const p = f.properties;
+      if (hoverId !== p.id){
+        hoverId = p.id;
+        map.setFilter('route-hover', ['==', ['get', 'id'], p.id]);
+      }
+      map.getCanvas().style.cursor = 'pointer';
+      const tip = $('tip');
+      tip.style.display = 'block';
+      tip.style.left = (e.point.x + 14) + 'px';
+      tip.style.top = (e.point.y + 14) + 'px';
+      tip.querySelector('.t').textContent = p.name;
+      tip.querySelector('.s').textContent = `${p.date} · ${p.sport} · ${p.distance_km} km`;
+    } else if (hoverId !== null){
+      hoverId = null;
+      map.setFilter('route-hover', ['==', ['get', 'id'], -1]);
+      map.getCanvas().style.cursor = '';
+      $('tip').style.display = 'none';
+    }
+  });
+  map.on('click', e => {
+    const fs = map.queryRenderedFeatures(
+      [[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], {layers: ['heat']});
+    if (fs.length) select(fs[0].properties.id, false);
+  });
+
+  buildChips();
+  applyFilters();
+});
+
+function fmtTime(s){
+  const h = Math.floor(s/3600), m = Math.round(s%3600/60);
+  return h ? `${h}h ${m}min` : `${m}min`;
+}
+const fmtNum = n => n.toLocaleString('sr-RS');
+
+function buildChips(){
+  const feats = routes.features;
+  const sports = [['all', 'Sve'], ['Ride', 'Ride'], ['Run', 'Run']];
+  if (feats.some(f => f.properties.sport !== 'Run' && f.properties.sport !== 'Ride'))
+    sports.push(['other', 'Ostalo']);
+  $('sportChips').innerHTML = sports.map(([v, l]) =>
+    `<span class="chip" data-k="sport" data-v="${v}">${l}</span>`).join('');
+  const years = [...new Set(feats.map(f => f.properties.year).filter(Boolean))].sort().reverse();
+  $('yearChips').innerHTML = [`<span class="chip" data-k="year" data-v="all">Sve godine</span>`]
+    .concat(years.map(y => `<span class="chip" data-k="year" data-v="${y}">${y}</span>`)).join('');
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+    filt[c.dataset.k] = c.dataset.v;
+    applyFilters();
+  });
+}
+
+function applyFilters(){
+  document.querySelectorAll('.chip').forEach(c =>
+    c.classList.toggle('on', String(filt[c.dataset.k]) === c.dataset.v));
+  const expr = filterExpr();
+  for (const l of ['heat', 'heat-glow'])
+    map.setFilter(l, expr === true ? null : expr);
+  if (selId != null && !featMatches(featureById(selId).properties)){
+    selId = null;
+    map.setFilter('route-sel', ['==', ['get', 'id'], -1]);
+    $('detail').style.display = 'none';
+  }
+  buildList();
+}
+
+function buildList(){
+  const feats = routes.features.filter(f => featMatches(f.properties))
+    .sort((a, b) => (b.properties.date || '').localeCompare(a.properties.date || ''));
+  const km = feats.reduce((s, f) => s + (f.properties.distance_km || 0), 0);
+  const up = feats.reduce((s, f) => s + (f.properties.elev_gain_m || 0), 0);
+  $('totals').textContent = `${feats.length} ruta · ${fmtNum(Math.round(km))} km · ${fmtNum(Math.round(up))} m uspona`;
+  const list = $('list');
+  list.innerHTML = '';
+  for (const f of feats){
+    const p = f.properties;
+    const el = document.createElement('div');
+    el.className = 'item' + (p.id == selId ? ' sel' : '');
+    el.dataset.id = p.id;
+    el.innerHTML = `<span class="dot" style="background:${SPORT_COLOR(p.sport)};color:${SPORT_COLOR(p.sport)}"></span>
+      <span class="mid"><div class="nm">${p.name}</div><div class="sub">${p.date} · ${p.sport}</div></span>
+      <span class="km">${p.distance_km} km</span>`;
+    el.onclick = () => select(p.id, true);
+    list.appendChild(el);
+  }
+}
+
+function featureById(id){ return routes.features.find(f => f.properties.id == id); }
+
+function select(id, zoom){
+  selId = id;
+  const f = featureById(id); if (!f) return;
+  map.setFilter('route-sel', ['==', ['get', 'id'], typeof id === 'string' ? Number(id) : id]);
+  document.querySelectorAll('.item').forEach(el => el.classList.toggle('sel', el.dataset.id == id));
+  const p = f.properties;
+  $('d-name').textContent = p.name;
+  $('d-date').textContent = `${p.date} · ${p.sport}`;
+  const tiles = [
+    [p.distance_km + ' km', 'duzina'],
+    [fmtTime(p.moving_time_s), 'trajanje'],
+    [p.elev_gain_m + ' m', 'uspon'],
+    [p.avg_speed_kmh + ' km/h', 'prosek'],
+  ];
+  if (p.avg_hr) tiles.push([Math.round(p.avg_hr) + ' bpm', 'puls'], [p.year, 'godina']);
+  $('stats').innerHTML = tiles.map(([v, k]) =>
+    `<div class="st"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+  const ph = photos[String(p.id)] || [];
+  $('d-photos').innerHTML = ph.slice(0, 4).map(u => `<img src="${u}" loading="lazy" alt="">`).join('');
+  $('detail').style.display = 'block';
+  if (zoom){
+    const b = new maplibregl.LngLatBounds();
+    f.geometry.coordinates.forEach(c => b.extend(c));
+    map.fitBounds(b, {padding: {top: 80, bottom: 80, left: 348, right: 260}, pitch: 55, duration: 1400});
+  }
+}
+
+$('ex').oninput = e => {
+  const v = +e.target.value;
+  $('exv').textContent = v.toFixed(1);
+  map.setTerrain(v === 0 ? null : {source: 'dem', exaggeration: v});
+};
+
+/* prava nadmorska visina: direktno iz terrarium DEM tile-a (z12, ~30 m rezolucija) */
+const altCache = new Map();
+async function altitudeAt(lon, lat){
+  const z = 12, n = 2 ** z;
+  const xf = (lon + 180) / 360 * n;
+  const latR = lat * Math.PI / 180;
+  const yf = (1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2 * n;
+  const x = Math.floor(xf), y = Math.floor(yf), key = x + '/' + y;
+  if (!altCache.has(key)){
+    altCache.set(key, (async () => {
+      const blob = await (await fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`)).blob();
+      const img = await createImageBitmap(blob);
+      const c = document.createElement('canvas'); c.width = c.height = 256;
+      const ctx = c.getContext('2d', {willReadFrequently: true});
+      ctx.drawImage(img, 0, 0);
+      return ctx.getImageData(0, 0, 256, 256).data;
+    })());
+  }
+  const data = await altCache.get(key);
+  const px = Math.min(255, Math.floor((xf - x) * 256)), py = Math.min(255, Math.floor((yf - y) * 256));
+  const i = (py * 256 + px) * 4;
+  return data[i] * 256 + data[i + 1] + data[i + 2] / 256 - 32768;
+}
+
+/* ---------- fly-through ---------- */
+const R = 6371000, rad = Math.PI/180;
+function hav(a, b){
+  const dLat = (b[1]-a[1])*rad, dLon = (b[0]-a[0])*rad;
+  const q = Math.sin(dLat/2)**2 + Math.cos(a[1]*rad)*Math.cos(b[1]*rad)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(q));
+}
+function bearingTo(a, b){
+  const y = Math.sin((b[0]-a[0])*rad)*Math.cos(b[1]*rad);
+  const x = Math.cos(a[1]*rad)*Math.sin(b[1]*rad) - Math.sin(a[1]*rad)*Math.cos(b[1]*rad)*Math.cos((b[0]-a[0])*rad);
+  return Math.atan2(y, x)/rad;
+}
+function lerpAngle(a, b, t){
+  let d = ((b - a + 540) % 360) - 180;
+  return a + d * t;
+}
+
+let flyReq = null, flyMarker = null;
+$('fly').onclick = () => { if (selId != null) startFly(featureById(selId)); };
+$('stop').onclick = stopFly;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') stopFly(); });
+
+function startFly(f){
+  const pts = f.geometry.coordinates;
+  if (pts.length < 2) return;
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + hav(pts[i-1], pts[i]));
+  const total = cum[cum.length-1];
+  const idxAt = d => {
+    const i = cum.findIndex(c => c >= d);
+    return i <= 0 ? 1 : i;
+  };
+  const pointAt = d => {
+    const i = idxAt(d);
+    const t = (d - cum[i-1]) / Math.max(cum[i]-cum[i-1], 0.01);
+    return [pts[i-1][0] + (pts[i][0]-pts[i-1][0])*t, pts[i-1][1] + (pts[i][1]-pts[i-1][1])*t];
+  };
+
+  flying = true;
+  $('tip').style.display = 'none';
+  map.setFilter('route-hover', ['==', ['get', 'id'], -1]);
+  $('hud').style.display = 'block';
+  $('h-name').textContent = f.properties.name;
+  $('h-alt').textContent = '';
+  const mEl = document.createElement('div');
+  mEl.className = 'fly-marker';
+  flyMarker = new maplibregl.Marker({element: mEl}).setLngLat(pts[0]).addTo(map);
+  let d = 0, brg = bearingTo(pts[0], pts[Math.min(8, pts.length-1)]), last = performance.now(), lastAlt = 0;
+  const zoom = f.properties.distance_km > 60 ? 12.6 : (f.properties.distance_km > 15 ? 13.8 : 14.3);
+
+  function frame(now){
+    if (!flying) return;
+    const dt = Math.min((now - last)/1000, 0.1); last = now;
+    d += 170 * (+$('spd').value) * dt;               // m/s "brzina preleta"
+    if (d >= total){ stopFly(); return; }
+    const cur = pointAt(d), ahead = pointAt(Math.min(d + 400, total));
+    brg = lerpAngle(brg, bearingTo(cur, ahead), 0.06);
+    map.jumpTo({center: cur, bearing: brg, pitch: 67, zoom,
+      padding: {top: Math.round(map.getContainer().clientHeight * 0.42), bottom: 0, left: 0, right: 0}});
+    flyMarker.setLngLat(cur);
+    map.getSource('fly-trail').setData({type: 'Feature',
+      geometry: {type: 'LineString', coordinates: pts.slice(0, idxAt(d)).concat([cur])}});
+    $('barfill').style.width = (d/total*100).toFixed(1) + '%';
+    $('h-km').textContent = (d/1000).toFixed(1) + ' / ' + (total/1000).toFixed(1) + ' km';
+    if (now - lastAlt > 300){
+      lastAlt = now;
+      altitudeAt(cur[0], cur[1])
+        .then(a => { if (flying) $('h-alt').textContent = Math.round(a) + ' m n.v.'; })
+        .catch(() => {});
+    }
+    flyReq = requestAnimationFrame(frame);
+  }
+  flyReq = requestAnimationFrame(frame);
+}
+
+function stopFly(){
+  if (!flying) return;
+  flying = false;
+  if (flyReq) cancelAnimationFrame(flyReq);
+  $('hud').style.display = 'none';
+  if (flyMarker){ flyMarker.remove(); flyMarker = null; }
+  map.getSource('fly-trail').setData({type: 'FeatureCollection', features: []});
+  map.setPadding({top: 0, bottom: 0, left: 0, right: 0});
+  const f = selId != null && featureById(selId);
+  if (f){
+    const b = new maplibregl.LngLatBounds();
+    f.geometry.coordinates.forEach(c => b.extend(c));
+    map.fitBounds(b, {padding: {top: 80, bottom: 80, left: 348, right: 260}, pitch: 55, duration: 1600});
+  }
+}
+</script>
+</body>
+</html>
