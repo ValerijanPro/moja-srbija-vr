@@ -100,11 +100,21 @@ public class MiniRunner : MonoBehaviour
         return Vector3.Lerp(path.GetPosition(i - 1), path.GetPosition(i), t);
     }
 
+    float restT;
+    bool flipState;
+    [Tooltip("Ukljuci ako biciklista gleda suprotno od smera kretanja")]
+    public bool invertFacing;
+
     void Update()
     {
         if (path == null || vis == null || total <= 0.0001f) return;
         float s = Mathf.Max(path.transform.lossyScale.x, 1e-5f);
-        d = (d + worldSpeed / s * Time.deltaTime) % total;
+        if (restT > 0) restT -= Time.deltaTime;
+        else
+        {
+            d += worldSpeed / s * Time.deltaTime;
+            if (d >= total) { d = 0; restT = 0.7f; }   // kratka pauza na startu petlje
+        }
 
         var wp = path.transform.TransformPoint(PointAt(d));
         vis.position = wp + Vector3.up * worldSize * 0.45f;
@@ -119,13 +129,15 @@ public class MiniRunner : MonoBehaviour
         if (cam != null)
         {
             vis.rotation = Quaternion.LookRotation(vis.position - cam.transform.position);
-            // sprite gleda u smeru kretanja (flip po horizontali kad treba)
+            // sprite gleda u smeru kretanja; histereza sprecava treperenje
+            // kad se krece pravo ka/od posmatraca
             if (visRend != null)
             {
-                var ahead = path.transform.TransformPoint(PointAt(Mathf.Min(d + total * 0.005f, total)));
-                var moveDir = ahead - wp;
+                var ahead = path.transform.TransformPoint(PointAt(Mathf.Min(d + total * 0.01f, total)));
+                var moveDir = (ahead - wp).normalized;
                 float side = Vector3.Dot(moveDir, cam.transform.right);
-                bool flip = side < -0.0001f;
+                if (Mathf.Abs(side) > 0.25f) flipState = side > 0;
+                bool flip = flipState ^ invertFacing;
                 visRend.material.mainTextureScale = new Vector2(flip ? -1 : 1, 1);
                 visRend.material.mainTextureOffset = new Vector2(flip ? 1 : 0, 0);
             }
