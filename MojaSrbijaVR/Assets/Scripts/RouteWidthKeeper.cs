@@ -34,7 +34,7 @@ public class RouteWidthKeeper : MonoBehaviour
         foreach (var kv in baseW)
         {
             if (kv.Key == null) continue;
-            float f = kv.Key == highlighted ? 2.4f : (kv.Key == hovered ? 1.7f : 1.25f);
+            float f = kv.Key == highlighted ? 2.4f : (kv.Key == hovered ? 2.1f : 1.25f);
             kv.Key.widthMultiplier = kv.Value * f * k;
         }
     }

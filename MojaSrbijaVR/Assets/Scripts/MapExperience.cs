@@ -50,11 +50,13 @@ public partial class MapExperience : MonoBehaviour
         buttonY = Action("<XRController>{LeftHand}/secondaryButton");
         buttonA = Action("<XRController>{RightHand}/primaryButton");
         buttonB = Action("<XRController>{RightHand}/secondaryButton");
-        legend = new WorldRoutePanel("Legenda", 264, 168);
+        legend = new WorldRoutePanel("Legenda", 264, 258);
         legend.root.transform.SetParent(null, true);
         legend.AddText("<color=#05EBFF>●</color>  Vožnja (bicikl)", 36, 23);
         legend.AddText("<color=#FF1466>●</color>  Trčanje", 36, 23);
         legend.AddText("<color=#A6FF0D>●</color>  Ostalo", 36, 23);
+        legend.AddText("<color=#FF8014>●</color>  Preporučena ruta", 36, 23);
+        legend.AddText("<color=#FFEB0D>●</color>  Izabrana ruta", 36, 23);
 
         menu = new WorldRoutePanel("PregledRuta", 540, 1040);
         // Keep the panel in the room. A head-locked panel runs away as the user

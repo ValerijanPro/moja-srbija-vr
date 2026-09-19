@@ -42,6 +42,7 @@ public class SfxManager : MonoBehaviour
         amb.spatialBlend = 0f;
         amb.Play();
         StartCoroutine(TryCustomMusic(amb));
+        StartCoroutine(TryCustomBell());
 
         var grab = GetComponent<XRGrabInteractable>();
         if (grab != null)
@@ -63,6 +64,31 @@ public class SfxManager : MonoBehaviour
     }
 
     void Play(AudioClip c) { if (c != null) src.PlayOneShot(c); }
+
+    // pravo zvonce iz sfx/bell.mp3 ako postoji (zamenjuje sintetizovano)
+    System.Collections.IEnumerator TryCustomBell()
+    {
+        yield return RuntimeData.Prepare();
+        var dir = System.IO.Path.Combine(RuntimeData.Root, "sfx");
+        if (!System.IO.Directory.Exists(dir)) yield break;
+        string file = null;
+        foreach (var f in System.IO.Directory.GetFiles(dir))
+            if (System.IO.Path.GetFileNameWithoutExtension(f) == "bell" &&
+                (f.EndsWith(".mp3") || f.EndsWith(".ogg") || f.EndsWith(".wav"))) { file = f; break; }
+        if (file == null) yield break;
+        var type = file.EndsWith(".mp3") ? AudioType.MPEG
+                 : file.EndsWith(".ogg") ? AudioType.OGGVORBIS : AudioType.WAV;
+        using (var req = UnityEngine.Networking.UnityWebRequestMultimedia.GetAudioClip(
+            "file:///" + file.Replace('\\', '/'), type))
+        {
+            yield return req.SendWebRequest();
+            if (req.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+            {
+                bellClip = UnityEngine.Networking.DownloadHandlerAudioClip.GetContent(req);
+                Debug.Log("[MojaSrbija] Zvonce ucitano iz sfx/bell");
+            }
+        }
+    }
 
     static AudioClip Bell()
     {

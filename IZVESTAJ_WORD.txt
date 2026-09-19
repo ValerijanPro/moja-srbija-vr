@@ -10,22 +10,22 @@ Repozitorijum: https://github.com/ValerijanPro/moja-srbija-vr
 
 Cilj projekta je razvoj VR sistema za imerzivnu vizuelizaciju i istraživanje ličnih
 sportskih aktivnosti (biciklizam, trčanje) na trodimenzionalnom terenu Srbije.
-Sistem pripada oblasti imerzivne analitike (immersive analytics) — korišćenju
+Sistem pripada oblasti imerzivne analitike (immersive analytics) - korišćenju
 virtuelne stvarnosti kao medija za analizu ličnih podataka (personal informatics),
 gde prostorni prikaz, prirodne interakcije rukama i osećaj razmere omogućavaju
 uvide koje klasičan dvodimenzionalni prikaz ne pruža.
 
 Konkretni ciljevi:
 
-1) Automatska akvizicija podataka — povezivanje sa Strava platformom (OAuth 2.0)
+1) Automatska akvizicija podataka - povezivanje sa Strava platformom (OAuth 2.0)
    i preuzimanje kompletne arhive aktivnosti korisnika (GPS putanje, statistika,
    fotografije i video zapisi), bez ručne pripreme podataka.
-2) Verna maketa Srbije — 3D model terena države sa realnim reljefom (digitalni
+2) Verna maketa Srbije - 3D model terena države sa realnim reljefom (digitalni
    model visina) i satelitskim snimcima, isečen po državnoj granici, optimizovan
    za samostalno (standalone) izvršavanje na mobilnom VR uređaju bez interneta.
-3) Prirodne VR interakcije — selekcija ruta laserskim pokazivačem i direktnim
+3) Prirodne VR interakcije - selekcija ruta laserskim pokazivačem i direktnim
    dodirom, manipulacija mapom rukama, prostorni korisnički interfejs.
-4) Analitičke funkcije — automatsko grupisanje sličnih putanja, pregled
+4) Analitičke funkcije - automatsko grupisanje sličnih putanja, pregled
    aktivnosti kroz vreme, ponovno proživljavanje rute (replay vožnje kroz teren)
    i preporuke narednih ruta na osnovu lične arhive.
 
@@ -53,7 +53,7 @@ podataka (AWS Terrarium DEM, zoom nivoi 9 i 12) i satelitskih snimaka (Esri Worl
 Imagery, zoom 11 za celu državu i zoom 13 za region sa najviše aktivnosti);
 reprojekcija Web-Mercator u ekvirektangularnu projekciju; generisanje mesh-a
 terena (mreža oko 400x440 temena, isečena point-in-polygon testom po državnoj
-granici, sa bočnim zidovima i dnom — izgled fizičke makete); preuveličanje
+granici, sa bočnim zidovima i dnom - izgled fizičke makete); preuveličanje
 reljefa 5x radi čitljivosti u minijaturi. Rezultat je potpuno offline sadržaj.
 
 Unity VR aplikacija: Unity 6 (URP), OpenXR, XR Interaction Toolkit 3;
@@ -62,58 +62,58 @@ raspakuju iz APK-a u trajno skladište.
 
 2.2. Funkcionalnosti aplikacije
 
-1)  Ekran dobrodošlice — prostorni panel sa ukupnom statistikom arhive
+1)  Ekran dobrodošlice - prostorni panel sa ukupnom statistikom arhive
     (broj aktivnosti, kilometraža, uspon) i izborom režima, sa animiranim
     ulazom i hover efektima; početni pogled obuhvata celu Srbiju.
-2)  Interaktivna mapa Srbije — maketa sa realnim reljefom i satelitskim
+2)  Interaktivna mapa Srbije - maketa sa realnim reljefom i satelitskim
     snimcima; pomeranje hvatanjem (grip), zumiranje sa dve ruke ili palicom
     (zum ka mestu na koje korisnik pokazuje), repozicioniranje pogleda.
-3)  Prikaz svih aktivnosti — GPS putanje iscrtane preko terena, obojene po
+3)  Prikaz svih aktivnosti - GPS putanje iscrtane preko terena, obojene po
     tipu sporta (uz legendu boja u prostoru), konstantne debljine nezavisno
     od zuma; prelazak pokazivačem preko rute daje zvučnu povratnu informaciju.
-4)  Selekcija ruta — laserski pokazivač na daljinu i projekcija vrha kontrolera
+4)  Selekcija ruta - laserski pokazivač na daljinu i projekcija vrha kontrolera
     pri bliskom radu (dodir); magnetno lepljenje kursora za najbližu putanju;
     rade oba kontrolera.
-5)  Usmerena selekcija — zadržan trigger uz otklon desne palice prebacuje
+5)  Usmerena selekcija - zadržan trigger uz otklon desne palice prebacuje
     selekciju na susednu rutu u pokazanom smeru (gore/dole/levo/desno),
     za precizno kretanje kroz gusto preklopljene putanje.
-6)  Automatsko grupisanje sličnih putanja — aktivnosti istog sporta čije se
+6)  Automatsko grupisanje sličnih putanja - aktivnosti istog sporta čije se
     putanje geometrijski poklapaju prikazuju se kao jedna reprezentativna
     linija; dugmadima A/B se listaju pojedinačne aktivnosti iz grupe.
-7)  Panel izabrane rute — naziv, datum, dužina, uspon, prosečna brzina, puls,
+7)  Panel izabrane rute - naziv, datum, dužina, uspon, prosečna brzina, puls,
     redni broj aktivnosti u grupi i fotografije sa aktivnosti; zaobljen dizajn
     sa senkama, akcentnom trakom, hover animacijama i kaskadnim ulazom redova.
-8)  Galerija medija — pregled svih fotografija i video zapisa izabrane
+8)  Galerija medija - pregled svih fotografija i video zapisa izabrane
     aktivnosti na velikom panelu; video (sa zvukom) se reprodukuje direktno
     u VR okruženju iz lokalnih fajlova, bez interneta.
-9)  Foto-pinovi — fotografije lebde iznad mesta snimanja na maketi (prikazuju
+9)  Foto-pinovi - fotografije lebde iznad mesta snimanja na maketi (prikazuju
     se samo slike sa pouzdanom GPS lokacijom, prilepljene na putanju svoje
     aktivnosti); uključuju se i isključuju dugmetom.
-10) Replay vožnje — izabrana ruta može ponovo da se "provoza": teren se
+10) Replay vožnje - izabrana ruta može ponovo da se "provoza": teren se
     uvećava, sistem pomera svet ispod posmatrača duž putanje (floating origin)
     brzinom iz stvarnog zapisa aktivnosti; kontrola tempa, pauza, HUD sa
     pređenom kilometražom; fade tranzicije pri ulasku i izlasku.
-11) Prostorni meni — lista svih grupa ruta sa stranicenjem, uvećavanje
+11) Prostorni meni - lista svih grupa ruta sa stranicenjem, uvećavanje
     izabrane rute, povratak na početni ekran.
-12) Preporuke ruta — predlozi iz lične arhive (učestalost, dužina,
+12) Preporuke ruta - predlozi iz lične arhive (učestalost, dužina,
     destinacije) obeleženi direktno na mapi kao svetli markeri sa nazivom
     rute i fotografijom; klik na marker bira rutu.
-13) Mini-avatar — animirana figura koja se kreće po izabranoj ruti od starta
+13) Mini-avatar - animirana figura koja se kreće po izabranoj ruti od starta
     ka cilju, okrenuta u smeru kretanja: biciklista na vožnjama, trkač na
     trčanjima (odvojeni sprite setovi).
-14) Doba dana — kontinualna promena položaja i boje sunca (zora-podne-noć)
+14) Doba dana - kontinualna promena položaja i boje sunca (zora-podne-noć)
     desnom palicom.
-15) Zvuk — proceduralno generisani zvukovi interakcija: hover preko rute,
+15) Zvuk - proceduralno generisani zvukovi interakcija: hover preko rute,
     zvonce bicikla pri izboru vožnje, koraci trčanja pri izboru trčanja,
     hvatanje mape; muzička podloga (podržana zamena sopstvenom muzikom).
-16) Poster režim — snimanje 4K rendera makete iz filmskog ugla jednim tasterom.
-17) Veb prototip — 3D pregledač istih podataka u browseru (MapLibre GL,
+16) Poster režim - snimanje 4K rendera makete iz filmskog ugla jednim tasterom.
+17) Veb prototip - 3D pregledač istih podataka u browseru (MapLibre GL,
     teren + heatmap stil ruta + filteri po sportu i godini).
 
 2.3. Tehnički izazovi i rešenja
 
 - Streaming globalnog terena (Cesium) pokazao se neprikladnim za maketu
-  (rupe u učitavanju, zakrivljenost, nestabilna razmera) — zamenjen je
+  (rupe u učitavanju, zakrivljenost, nestabilna razmera) - zamenjen je
   jednokratno ispečenim mesh-om: deterministički, offline, savršeno poravnat
   sa rutama jer koristi istu projekciju.
 - Razvoj bez podržanog PC-VR hardvera rešen je streaming-om Unity editora u
@@ -123,9 +123,9 @@ raspakuju iz APK-a u trajno skladište.
   shaderom (crtanje ruta preko svih slojeva) i geometrijom linija bez kapica.
 - Tanke linije kao mete u VR rešene su magnetnom selekcijom sa vidljivim
   radijusom hvatanja i usmerenim listanjem kandidata.
-- Strava video zapisi su HLS strimovi koje mobilni plejer ne podržava —
+- Strava video zapisi su HLS strimovi koje mobilni plejer ne podržava -
   konvertuju se unapred u lokalne MP4 fajlove i pakuju u aplikaciju.
-- Podaci u APK-u (StreamingAssets) nisu dostupni kao fajlovi na Androidu —
+- Podaci u APK-u (StreamingAssets) nisu dostupni kao fajlovi na Androidu -
   raspakuju se u trajno skladište pri prvom pokretanju.
 
 3. OSTVARENI REZULTATI
@@ -134,11 +134,11 @@ raspakuju iz APK-a u trajno skladište.
   tokom: dobrodošlica -> pregled mape -> selekcija -> detalji i galerija ->
   replay vožnje -> preporuke.
 - Vizuelizovano 109 aktivnosti (oko 2.400 km i 13.000 m uspona) iz lične
-  četvorogodišnje arhive (2022–2026), automatski grupisano u 95 grupa putanja; 34 fotografije
+  četvorogodišnje arhive (2022-2026), automatski grupisano u 95 grupa putanja; 34 fotografije
   i 18 video zapisa dostupno u galeriji (video radi offline).
 - Maketa Srbije: teren isečen po državnoj granici, satelitska tekstura visoke
   rezolucije sa dodatnim regionom u većoj rezoluciji, potpuno offline.
-- Pipeline je reproducibilan za bilo kog Strava korisnika — unosom sopstvenih
+- Pipeline je reproducibilan za bilo kog Strava korisnika - unosom sopstvenih
   API kredencijala sistem preuzima i vizuelizuje drugu arhivu bez izmena koda.
 - Performanse: stabilnih 120 fps na Quest 2 uređaju.
 

@@ -2,6 +2,10 @@ avatar/f1.png
 avatar/f2.png
 avatar/f3.png
 avatar/f4.png
+avatar/run1.png
+avatar/run2.png
+avatar/run3.png
+avatar/run4.png
 border.txt
 music/starostin-instrumental-acoustic-guitar-music-401434.mp3
 photopins.txt

@@ -46,15 +46,15 @@ Strava API ──► Python pipeline ──► ispečeni podaci ──► Unity 
 preuzimanje svih aktivnosti (Strava API `/athlete/activities`, dekodiranje *encoded
 polyline* formata); preuzimanje metapodataka fotografija sa GPS lokacijama;
 konstrukcija granice Srbije iz OpenStreetMap podataka (unija administrativnih
-relacija, Douglas–Peucker simplifikacija); veb-prototip vizuelizacije (MapLibre GL)
+relacija, Douglas-Peucker simplifikacija); veb-prototip vizuelizacije (MapLibre GL)
 korišćen kao dizajn-specifikacija VR scene.
 
 **Sloj pripreme („pekara", Unity editor skripte):** jednokratno preuzimanje visinskih
 podataka (AWS Terrarium DEM, zoom 9 i 12) i satelitskih snimaka (Esri World Imagery,
 zoom 11 za celu državu + zoom 13 za region sa najviše aktivnosti); reprojekcija
-Web-Mercator → ekvirektangularno; generisanje mesh-a terena (~400×440 grid,
+Web-Mercator → ekvirektangularno; generisanje mesh-a terena (oko 400x440 grid,
 isečen *point-in-polygon* testom po granici, sa bočnim zidovima i dnom - izgled
-fizičke makete); preuveličanje reljefa 5× radi čitljivosti u minijaturi.
+fizičke makete); preuveličanje reljefa 5x radi čitljivosti u minijaturi.
 Rezultat je potpuno **offline** sadržaj.
 
 **Unity VR aplikacija** (`MojaSrbijaVR/`): Unity 6 (URP), OpenXR, XR Interaction
@@ -66,7 +66,7 @@ Toolkit 3; IL2CPP/ARM64 build za Quest 2.
   vrha kontrolera pri bliskom radu („dodir"), magnetno lepljenje kursora za najbližu
   putanju, i listanje preklopljenih kandidata (A/B dugmad) sa prikazom naziva.
 - **Grupisanje sličnih putanja:** aktivnosti istog sporta čije putanje se poklapaju
-  (≥90% tačaka unutar 150 m, uz uslov sličnih dužina) prikazuju se kao jedna
+  (najmanje 90% tačaka unutar 150 m, uz uslov sličnih dužina) prikazuju se kao jedna
   reprezentativna linija; pojedinačne aktivnosti iz grupe se listaju.
   Geometrijski kriterijumi su izdvojeni u čistu C# biblioteku bez Unity zavisnosti.
 - **Replay vožnje:** izabrana ruta se može „provozati" - teren se uvećava, a sistem
@@ -96,8 +96,8 @@ Toolkit 3; IL2CPP/ARM64 build za Quest 2.
 
 - **Funkcionalna standalone VR aplikacija** na Meta Quest 2 uređaju (bez računara),
   sa kompletnim tokom: dobrodošlica → pregled mape → selekcija → detalji → replay.
-- Vizuelizovano **109 aktivnosti (~2.400 km, 13000 m uspona)** iz lične
-  četvorogodišnje arhive (2022–2026), automatski grupisano u **95 grupa** putanja.
+- Vizuelizovano **109 aktivnosti (oko 2.400 km, 13000 m uspona)** iz lične
+  četvorogodišnje arhive (2022-2026), automatski grupisano u **95 grupa** putanja.
 - Maketa Srbije: mesh od hiljada temena isečen po državnoj granici,
   satelitska tekstura 8K + region visoke rezolucije, potpuno offline.
 - Kompletan pipeline je **reproducibilan za bilo kog Strava korisnika** - unosom
@@ -119,7 +119,5 @@ Toolkit 3; IL2CPP/ARM64 build za Quest 2.
 
 ## 4. Tehnologije
 
-Unity 6 (URP, OpenXR, XR Interaction Toolkit 3, IL2CPP/ARM64) · Python 3
-(stdlib, bez zavisnosti) · Strava API v3 (OAuth 2.0) · AWS Terrarium DEM ·
-Esri World Imagery · OpenStreetMap (granica) · MapLibre GL (web prototip) ·
-Meta Quest 2 · Virtual Desktop (razvojni streaming)
+Unity 6 (URP, OpenXR, XR Interaction Toolkit 3, IL2CPP/ARM64), Python 3
+(stdlib, bez zavisnosti), Strava API v3 (OAuth 2.0), AWS Terrarium DEM, Esri World Imagery, OpenStreetMap (granica), MapLibre GL (web prototip), Meta Quest 2, Virtual Desktop (razvojni streaming)

@@ -250,14 +250,25 @@ public partial class RoutePicker : MonoBehaviour
         int step = btnA.WasPressedThisFrame() ? 1 : btnB.WasPressedThisFrame() ? -1 : 0;
         if (step != 0) CycleActivity(step);
         hoverTimer += Time.deltaTime;
-        if (aiming && !menuHit && hoverTimer > 0.1f)
-        { hoverTimer = 0; UpdateHover(hitPoint); }
-        else if (!aiming || menuHit) { hoverLR = null; keeper.hovered = null; }
-        reticle.gameObject.SetActive(aiming && !menuHit);
-        if (aiming)
+        // hover radi sa OBA kontrolera: aktivni ima prednost, inace drugi
+        Vector3 hoverPt = hitPoint;
+        float hoverDist = hitDist;
+        bool hoverAim = aiming;
+        if (!hoverAim)
         {
-            reticle.position = hitPoint;
-            reticle.localScale = Vector3.one * Mathf.Clamp(hitDist * 0.007f, 0.003f, 0.015f);
+            var other = activeLeft ? rightAim : leftAim;
+            if (other != null && BoardHitFrom(other, out var op, out var od))
+            { hoverPt = op; hoverDist = od; hoverAim = true; }
+        }
+        if (hoverAim && !menuHit && hoverTimer > 0.1f)
+        { hoverTimer = 0; UpdateHover(hoverPt); }
+        else if (!hoverAim || menuHit)
+        { hoverLR = null; keeper.hovered = null; lastHoverSound = null; }
+        reticle.gameObject.SetActive(hoverAim && !menuHit);
+        if (hoverAim)
+        {
+            reticle.position = hoverPt;
+            reticle.localScale = Vector3.one * Mathf.Clamp(hoverDist * 0.007f, 0.003f, 0.015f);
         }
         // Region markers and the side panel carry the labels. No long lasso or
         // floating activity names compete with them on the map.
@@ -291,12 +302,18 @@ public partial class RoutePicker : MonoBehaviour
     bool RayToBoard(out Vector3 point, out float dist)
     {
         point = default; dist = float.MaxValue;
-        if (rayOrigin == null || board == null) return false;
+        return rayOrigin != null && BoardHitFrom(rayOrigin, out point, out dist);
+    }
+
+    bool BoardHitFrom(Transform origin, out Vector3 point, out float dist)
+    {
+        point = default; dist = float.MaxValue;
+        if (origin == null || board == null) return false;
 
         // 1) DODIR: vrh kontrolera blizu povrsine -> kursor je projekcija vrha
         if (board != null)
         {
-            var tip = rayOrigin.position + rayOrigin.forward * 0.04f;
+            var tip = origin.position + origin.forward * 0.04f;
             var mapUp = board.transform.up;
             if (board.Raycast(new Ray(tip + mapUp * 0.3f, -mapUp), out var hitN, 1.2f))
             {
@@ -311,7 +328,7 @@ public partial class RoutePicker : MonoBehaviour
         }
 
         // 2) ZRAK: klasicno na daljinu
-        var ray = new Ray(rayOrigin.position, rayOrigin.forward);
+        var ray = new Ray(origin.position, origin.forward);
         if (board.Raycast(ray, out var hit, 300f))
         {
             point = hit.point;
