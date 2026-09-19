@@ -12,6 +12,13 @@ da se „provoza" kroz teren brzinom iz stvarnog zapisa.
 
 > Detaljan opis cilja, realizacije i rezultata: [IZVESTAJ.md](IZVESTAJ.md)
 
+## Video prikaz
+
+[![Snimak koriscenja aplikacije](docs/moja_srbija_preview.gif)](docs/moja_srbija.mp4)
+
+*Klik na pregled otvara pun snimak gameplay-a (2:52) - dobrodoslica, mapa,
+selekcija ruta, galerija i voznja.*
+
 ## Struktura repozitorijuma
 
 | Putanja | Sadržaj |

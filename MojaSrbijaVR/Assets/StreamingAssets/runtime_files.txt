@@ -12,6 +12,7 @@ photopins.txt
 photos.txt
 routes.txt
 routes_meta.txt
+sfx/bell.mp3
 videos/18826928897_18.mp4
 videos/18998157051_16.mp4
 videos/18998157051_17.mp4
